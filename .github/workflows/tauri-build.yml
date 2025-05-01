@@ -42,3 +42,5 @@ jobs:
           releaseBody: "Auto build for ${{ github.run_number }}"
           releaseDraft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
