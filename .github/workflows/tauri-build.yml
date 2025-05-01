@@ -1,16 +1,16 @@
-name: Tauri Cross-Platform Build
+name: Build and Public Excalidraw Tauri Application
 
 on:
   push:
     tags:
-      - 'app-v*'  # only build it when add app-v* tag
+      - "app-v*" # only build it when add app-v* tag
   workflow_dispatch:
 
 jobs:
   build:
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest]  # [macos-latest, windows-latest, ubuntu-latest]
+        platform: [macos-latest, windows-latest] # [macos-latest, windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -33,7 +33,12 @@ jobs:
         working-directory: excalidraw-app
         run: yarn build
 
-      - name: Build Tauri app
+      - name: Build and Publish Tauri app
         uses: tauri-apps/tauri-action@v0
         with:
           projectPath: excalidraw-app
+          tagName: v${{ github.run_number }}
+          releaseName: "Release v${{ github.run_number }}"
+          releaseBody: "Auto build for ${{ github.run_number }}"
+          releaseDraft: false
+          prerelease: false
