@@ -1,0 +1,39 @@
+name: Tauri Cross-Platform Build
+
+on:
+  push:
+    tags:
+      - 'app-v*'  # only build it when add app-v* tag
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        working-directory: excalidraw-app
+        run: yarn install
+
+      - name: Build front-end
+        working-directory: excalidraw-app
+        run: yarn build
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: excalidraw-app
