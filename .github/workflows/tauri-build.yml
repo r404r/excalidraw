@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
+        platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -37,3 +37,4 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         with:
           projectPath: excalidraw-app
+          useNpm: false  # because some error, so direct to use npx, not to search npm scripts
