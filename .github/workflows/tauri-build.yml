@@ -37,9 +37,9 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         with:
           projectPath: excalidraw-app
-          tagName: v${{ github.run_number }}
-          releaseName: "Release v${{ github.run_number }}"
-          releaseBody: "Auto build for ${{ github.run_number }}"
+          tagName: ${{ github.ref_name }} # v${{ github.run_number }}
+          releaseName: "Release ${{ github.ref_name }}" # "Release v${{ github.run_number }}"
+          releaseBody: "Auto build for ${{ github.ref_name }}"
           releaseDraft: false
           prerelease: false
         env:
