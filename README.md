@@ -4,7 +4,10 @@
     <img alt="Excalidraw" src="https://excalidraw.nyc3.cdn.digitaloceanspaces.com/github/excalidraw_github_cover_2.png" />
   </picture>
 </a>
-
+<h1>
+  I created a fork of the original repository and then used Tauri to build a desktop version of it. <br>
+  by r404r
+</h1>
 <h4 align="center">
   <a href="https://excalidraw.com">Excalidraw Editor</a> |
   <a href="https://plus.excalidraw.com/blog">Blog</a> |
