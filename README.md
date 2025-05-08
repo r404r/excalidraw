@@ -6,6 +6,7 @@
 </a>
 <h2>
   I created a fork of the original repository and then used Tauri to build a desktop version of it. <br>
+  <br>
   by r404r
 </h2>
 <h4 align="center">
