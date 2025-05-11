@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": "VERCEL_GIT_COMMIT_SHA=local-dev npm run dev",
+    "beforeBuildCommand": "VERCEL_GIT_COMMIT_SHA=local-dev npm run build"
   },
   "app": {
     "windows": [
