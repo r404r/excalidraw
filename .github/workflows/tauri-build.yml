@@ -21,6 +21,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+    
+      - name: Enable Corepack # for yarn version error
+        run: corepack enable
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
