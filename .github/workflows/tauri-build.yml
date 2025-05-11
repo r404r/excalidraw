@@ -35,6 +35,8 @@ jobs:
       - name: Build front-end
         working-directory: excalidraw-app
         run: yarn build
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }} # set env paramater
 
       - name: Build and Publish Tauri app
         uses: tauri-apps/tauri-action@v0
