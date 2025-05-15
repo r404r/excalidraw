@@ -1,6 +1,6 @@
 [package]
 name = "excalidraw-app"
-version = "1.0.1"
+version = "1.08.0"
 description = "Excalidraw Desktop"
 authors = ["r404"]
 license = "MIT license"
