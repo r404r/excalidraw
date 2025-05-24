@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest] # [macos-latest, windows-latest, ubuntu-latest]
+        platform: [macos-latest, windows-latest, ubuntu-latest] # [macos-latest, windows-latest, ubuntu-latest]
       fail-fast: false  # true: (or its expression evaluates to true) GitHub will cancel all in-progress and queued jobs in the matrix if any job in the matrix fails. 
     runs-on: ${{ matrix.platform }}
 
