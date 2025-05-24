@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "excalidraw-app",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "identifier": "com.app.excalidraw",
   "build": {
     "frontendDist": "../build",
