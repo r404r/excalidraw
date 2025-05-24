@@ -29,6 +29,24 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # --- Add: for Ubuntu build task ---
+      - name: Install Linux dependencies (for Ubuntu platform)
+        if: matrix.platform == 'ubuntu-latest' # only run in Ubuntu runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            pkg-config \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+      # --- end for ubuntu dependencies ---
+
       - name: Install dependencies  # working-directory: excalidraw-app
         run: yarn install
 
