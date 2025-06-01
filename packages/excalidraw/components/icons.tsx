@@ -129,6 +129,21 @@ export const PinIcon = createIcon(
   tablerIconProps,
 );
 
+export const polygonIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M19 8m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M5 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M15 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M6.5 9.5l3.5 -3" />
+    <path d="M14 5.5l3 1.5" />
+    <path d="M18.5 10l-2.5 7" />
+    <path d="M13.5 17.5l-7 -5" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: lock-open (via Figma)
 export const UnlockedIcon = createIcon(
   <g>
@@ -176,6 +191,16 @@ export const LockedIcon = createIcon(
     <path d="M6.667 8.333V5.417C6.667 3.806 8.159 2.5 10 2.5c1.841 0 3.333 1.306 3.333 2.917v2.916" />
   </g>,
   modifiedTablerIconProps,
+);
+
+export const LockedIconFilled = createIcon(
+  <g fill="currentColor">
+    <path d="M12 2a5 5 0 0 1 5 5v3a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-6a3 3 0 0 1 3 -3v-3a5 5 0 0 1 5 -5m0 12a2 2 0 0 0 -1.995 1.85l-.005 .15a2 2 0 1 0 2 -2m0 -10a3 3 0 0 0 -3 3v3h6v-3a3 3 0 0 0 -3 -3" />
+  </g>,
+  {
+    width: 24,
+    height: 24,
+  },
 );
 
 // custom

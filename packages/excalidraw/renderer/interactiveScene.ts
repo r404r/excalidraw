@@ -1,5 +1,6 @@
 import {
   pointFrom,
+  pointsEqual,
   type GlobalPoint,
   type LocalPoint,
   type Radians,
@@ -28,6 +29,7 @@ import {
   isFrameLikeElement,
   isImageElement,
   isLinearElement,
+  isLineElement,
   isTextElement,
 } from "@excalidraw/element";
 
@@ -161,7 +163,8 @@ const renderSingleLinearPoint = <Point extends GlobalPoint | LocalPoint>(
   point: Point,
   radius: number,
   isSelected: boolean,
-  isPhantomPoint = false,
+  isPhantomPoint: boolean,
+  isOverlappingPoint: boolean,
 ) => {
   context.strokeStyle = "#5e5ad8";
   context.setLineDash([]);
@@ -176,8 +179,11 @@ const renderSingleLinearPoint = <Point extends GlobalPoint | LocalPoint>(
     context,
     point[0],
     point[1],
-    radius / appState.zoom.value,
+    (isOverlappingPoint
+      ? radius * (appState.editingLinearElement ? 1.5 : 2)
+      : radius) / appState.zoom.value,
     !isPhantomPoint,
+    !isOverlappingPoint || isSelected,
   );
 };
 
@@ -253,7 +259,7 @@ const renderBindingHighlightForSuggestedPointBinding = (
       index,
       elementsMap,
     );
-    fillCircle(context, x, y, threshold);
+    fillCircle(context, x, y, threshold, true);
   });
 };
 
@@ -377,7 +383,9 @@ const renderElementsBoxHighlight = (
   context: CanvasRenderingContext2D,
   appState: InteractiveCanvasAppState,
   elements: NonDeleted<ExcalidrawElement>[],
+  config?: { colors?: string[]; dashed?: boolean },
 ) => {
+  const { colors = ["rgb(0,118,255)"], dashed = false } = config || {};
   const individualElements = elements.filter(
     (element) => element.groupIds.length === 0,
   );
@@ -394,8 +402,8 @@ const renderElementsBoxHighlight = (
       x2,
       y1,
       y2,
-      selectionColors: ["rgb(0,118,255)"],
-      dashed: false,
+      selectionColors: colors,
+      dashed,
       cx: x1 + (x2 - x1) / 2,
       cy: y1 + (y2 - y1) / 2,
       activeEmbeddable: false,
@@ -440,15 +448,48 @@ const renderLinearPointHandles = (
   const radius = appState.editingLinearElement
     ? POINT_HANDLE_SIZE
     : POINT_HANDLE_SIZE / 2;
+
+  const _isElbowArrow = isElbowArrow(element);
+  const _isLineElement = isLineElement(element);
+
   points.forEach((point, idx) => {
-    if (isElbowArrow(element) && idx !== 0 && idx !== points.length - 1) {
+    if (_isElbowArrow && idx !== 0 && idx !== points.length - 1) {
       return;
     }
 
-    const isSelected =
-      !!appState.editingLinearElement?.selectedPointsIndices?.includes(idx);
+    const isOverlappingPoint =
+      idx > 0 &&
+      (idx !== points.length - 1 || !_isLineElement || !element.polygon) &&
+      pointsEqual(
+        point,
+        idx === points.length - 1 ? points[0] : points[idx - 1],
+        2 / appState.zoom.value,
+      );
 
-    renderSingleLinearPoint(context, appState, point, radius, isSelected);
+    let isSelected =
+      !!appState.editingLinearElement?.selectedPointsIndices?.includes(idx);
+    // when element is a polygon, highlight the last point as well if first
+    // point is selected since they overlap and the last point tends to be
+    // rendered on top
+    if (
+      _isLineElement &&
+      element.polygon &&
+      !isSelected &&
+      idx === element.points.length - 1 &&
+      !!appState.editingLinearElement?.selectedPointsIndices?.includes(0)
+    ) {
+      isSelected = true;
+    }
+
+    renderSingleLinearPoint(
+      context,
+      appState,
+      point,
+      radius,
+      isSelected,
+      false,
+      isOverlappingPoint,
+    );
   });
 
   // Rendering segment mid points
@@ -475,6 +516,7 @@ const renderLinearPointHandles = (
           POINT_HANDLE_SIZE / 2,
           false,
           !fixedSegments.includes(idx + 1),
+          false,
         );
       }
     });
@@ -498,6 +540,7 @@ const renderLinearPointHandles = (
           POINT_HANDLE_SIZE / 2,
           false,
           true,
+          false,
         );
       }
     });
@@ -524,7 +567,7 @@ const renderTransformHandles = (
         context.strokeStyle = renderConfig.selectionColor;
       }
       if (key === "rotation") {
-        fillCircle(context, x + width / 2, y + height / 2, width / 2);
+        fillCircle(context, x + width / 2, y + height / 2, width / 2, true);
         // prefer round corners if roundRect API is available
       } else if (context.roundRect) {
         context.beginPath();
@@ -787,6 +830,17 @@ const _renderInteractiveScene = ({
     renderElementsBoxHighlight(context, appState, appState.elementsToHighlight);
   }
 
+  if (appState.activeLockedId) {
+    const element = allElementsMap.get(appState.activeLockedId);
+    const elements = element
+      ? [element]
+      : getElementsInGroup(allElementsMap, appState.activeLockedId);
+    renderElementsBoxHighlight(context, appState, elements, {
+      colors: ["#ced4da"],
+      dashed: true,
+    });
+  }
+
   const isFrameSelected = selectedElements.some((element) =>
     isFrameLikeElement(element),
   );
@@ -901,8 +955,8 @@ const _renderInteractiveScene = ({
             y1,
             x2,
             y2,
-            selectionColors,
-            dashed: !!remoteClients,
+            selectionColors: element.locked ? ["#ced4da"] : selectionColors,
+            dashed: !!remoteClients || element.locked,
             cx,
             cy,
             activeEmbeddable:
@@ -926,7 +980,9 @@ const _renderInteractiveScene = ({
           x2,
           y1,
           y2,
-          selectionColors: [oc.black],
+          selectionColors: groupElements.some((el) => el.locked)
+            ? ["#ced4da"]
+            : [oc.black],
           dashed: true,
           cx: x1 + (x2 - x1) / 2,
           cy: y1 + (y2 - y1) / 2,
@@ -990,7 +1046,11 @@ const _renderInteractiveScene = ({
           );
         }
       }
-    } else if (selectedElements.length > 1 && !appState.isRotating) {
+    } else if (
+      selectedElements.length > 1 &&
+      !appState.isRotating &&
+      !selectedElements.some((el) => el.locked)
+    ) {
       const dashedLinePadding =
         (DEFAULT_TRANSFORM_HANDLE_SPACING * 2) / appState.zoom.value;
       context.fillStyle = oc.white;
