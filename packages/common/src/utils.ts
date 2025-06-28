@@ -1,12 +1,9 @@
-import { average, pointFrom, type GlobalPoint } from "@excalidraw/math";
-import { getCenterForBounds, getElementBounds } from "@excalidraw/element";
+import { average } from "@excalidraw/math";
 
 import type {
   ExcalidrawBindableElement,
   FontFamilyValues,
   FontString,
-  ExcalidrawElement,
-  ElementsMap,
 } from "@excalidraw/element/types";
 
 import type {
@@ -103,7 +100,6 @@ export const getFontFamilyString = ({
 }) => {
   for (const [fontFamilyString, id] of Object.entries(FONT_FAMILY)) {
     if (id === fontFamily) {
-      // TODO: we should fallback first to generic family names first
       return `${fontFamilyString}${getFontFamilyFallbacks(id)
         .map((x) => `, ${x}`)
         .join("")}`;
@@ -714,8 +710,8 @@ export const arrayToObject = <T>(
   array: readonly T[],
   groupBy?: (value: T) => string | number,
 ) =>
-  array.reduce((acc, value) => {
-    acc[groupBy ? groupBy(value) : String(value)] = value;
+  array.reduce((acc, value, idx) => {
+    acc[groupBy ? groupBy(value) : idx] = value;
     return acc;
   }, {} as { [key: string]: T });
 
@@ -1239,17 +1235,6 @@ export const escapeDoubleQuotes = (str: string) => {
 
 export const castArray = <T>(value: T | T[]): T[] =>
   Array.isArray(value) ? value : [value];
-
-export const elementCenterPoint = (
-  element: ExcalidrawElement,
-  elementsMap: ElementsMap,
-  xOffset: number = 0,
-  yOffset: number = 0,
-) => {
-  const [x, y] = getCenterForBounds(getElementBounds(element, elementsMap));
-
-  return pointFrom<GlobalPoint>(x + xOffset, y + yOffset);
-};
 
 /** hack for Array.isArray type guard not working with readonly value[] */
 export const isReadonlyArray = (value?: any): value is readonly any[] => {
