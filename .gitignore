@@ -29,3 +29,4 @@ meta*.json
 .claude
 
 bk-*
+excalidraw-app/src-tauri/.tool-versions
