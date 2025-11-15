@@ -35,8 +35,10 @@
   "exclude": [
     "node_modules",
     "examples",
-    "dist",
-    "types",
+    "**/dist",
+    "**/dist/*",
+    "**/types",
+    "**/types/*",
     "tests",
     "src-tauri/target",
     "excalidraw-app/src-tauri/target"]
