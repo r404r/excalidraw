@@ -3,7 +3,7 @@ name: Build and Public Excalidraw Tauri Application
 on:
   push:
     tags:
-      - "app-v*" # only build it when add app-v* tag
+      - "release/v*" # only build it when add app-v* tag
   workflow_dispatch:
 
 jobs:
