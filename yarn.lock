@@ -1739,6 +1739,7 @@ __metadata:
     "@excalidraw/common": "npm:0.18.0"
     "@excalidraw/element": "npm:0.18.0"
     "@excalidraw/laser-pointer": "npm:1.3.1"
+    "@excalidraw/math": "npm:0.18.0"
     "@excalidraw/mermaid-to-excalidraw": "npm:1.1.3"
     "@excalidraw/random-username": "npm:1.1.0"
     "@radix-ui/react-popover": "npm:1.1.6"
@@ -1786,7 +1787,7 @@ __metadata:
     roughjs: "npm:4.6.4"
     sass: "npm:1.51.0"
     tunnel-rat: "npm:0.1.2"
-    typescript: "npm:4.9.4"
+    typescript: "npm:5.9.3"
   peerDependencies:
     react: ^17.0.2 || ^18.2.0 || ^19.0.0
     react-dom: ^17.0.2 || ^18.2.0 || ^19.0.0
@@ -1857,7 +1858,7 @@ __metadata:
     png-chunks-encode: "npm:1.0.0"
     png-chunks-extract: "npm:1.0.0"
     roughjs: "npm:4.6.4"
-    typescript: "npm:4.9.4"
+    typescript: "npm:5.9.3"
     wawoff2: "npm:2.0.1"
     which: "npm:4.0.0"
   languageName: unknown
@@ -7713,7 +7714,7 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     socket.io-client: "npm:4.7.2"
-    typescript: "npm:5.4.5"
+    typescript: "npm:5.9.3"
     vite: "npm:5.0.12"
     vite-plugin-html: "npm:3.2.2"
     vite-plugin-sitemap: "npm:0.7.1"
@@ -7754,7 +7755,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     rewire: "npm:6.0.0"
     rimraf: "npm:^5.0.0"
-    typescript: "npm:5.4.5"
+    typescript: "npm:5.9.3"
     vite: "npm:5.0.12"
     vite-plugin-checker: "npm:0.7.2"
     vite-plugin-ejs: "npm:1.7.0"
@@ -13104,27 +13105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.4":
-  version: 4.9.4
-  resolution: "typescript@npm:4.9.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/5008b97a2a3afdbe57ea70e504ebc8ec98f18d888059dfb7932a41f566a1360a28afc8de2a440fd6143b4014cc6d2616079931dc690c7513c2d21fa53957e0ec
-  languageName: node
-  linkType: hard
-
-"typescript@npm:5.4.5":
-  version: 5.4.5
-  resolution: "typescript@npm:5.4.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/2954022ada340fd3d6a9e2b8e534f65d57c92d5f3989a263754a78aba549f7e6529acc1921913560a4b816c46dce7df4a4d29f9f11a3dc0d4213bb76d043251e
-  languageName: node
-  linkType: hard
-
-"typescript@npm:^5":
+"typescript@npm:5.9.3, typescript@npm:^5":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -13134,27 +13115,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A4.9.4#optional!builtin<compat/typescript>":
-  version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#optional!builtin<compat/typescript>::version=4.9.4&hash=289587"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/d2949ccbf74e52ec8a153e5b2996439854e40937334b97374d4985c47465de1b63a611f15dc9bab9a8ae735fbedfabdf30f55e968778d890600f8472c286a08a
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>":
-  version: 5.4.5
-  resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=5adc0c"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/db2ad2a16ca829f50427eeb1da155e7a45e598eec7b086d8b4e8ba44e5a235f758e606d681c66992230d3fc3b8995865e5fd0b22a2c95486d0b3200f83072ec9
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^5#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
