@@ -1,12 +1,15 @@
 import {
   FRAME_STYLE,
   MAX_DECIMALS_FOR_SVG_EXPORT,
-  MIME_TYPES,
   SVG_NS,
+  THEME,
+  DARK_THEME_FILTER,
   getFontFamilyString,
   isRTL,
   isTestEnv,
   getVerticalOffset,
+  applyDarkModeFilter,
+  MIME_TYPES,
 } from "@excalidraw/common";
 import { normalizeLink, toValidURL } from "@excalidraw/common";
 import { hashString } from "@excalidraw/element";
@@ -30,8 +33,6 @@ import { getContainingFrame } from "@excalidraw/element";
 import { getCornerRadius, isPathALoop } from "@excalidraw/element";
 
 import { ShapeCache } from "@excalidraw/element";
-
-import { getFreeDrawSvgPath, IMAGE_INVERT_FILTER } from "@excalidraw/element";
 
 import { getElementAbsoluteCoords } from "@excalidraw/element";
 
@@ -74,7 +75,7 @@ const maybeWrapNodesInFrameClipPath = (
   }
   const frame = getContainingFrame(element, elementsMap);
   if (frame) {
-    const g = root.ownerDocument!.createElementNS(SVG_NS, "g");
+    const g = root.ownerDocument.createElementNS(SVG_NS, "g");
     g.setAttributeNS(SVG_NS, "clip-path", `url(#${frame.id})`);
     nodes.forEach((node) => g.appendChild(node));
     return g;
@@ -120,7 +121,7 @@ const renderElementToSvg = (
 
   // if the element has a link, create an anchor tag and make that the new root
   if (element.link) {
-    const anchorTag = svgRoot.ownerDocument!.createElementNS(SVG_NS, "a");
+    const anchorTag = svgRoot.ownerDocument.createElementNS(SVG_NS, "a");
     anchorTag.setAttribute("href", normalizeLink(element.link));
     root.appendChild(anchorTag);
     root = anchorTag;
@@ -147,7 +148,7 @@ const renderElementToSvg = (
     case "rectangle":
     case "diamond":
     case "ellipse": {
-      const shape = ShapeCache.generateElementShape(element, null);
+      const shape = ShapeCache.generateElementShape(element, renderConfig);
       const node = roughSVGDrawWithPrecision(
         rsvg,
         shape,
@@ -242,7 +243,7 @@ const renderElementToSvg = (
         renderConfig.renderEmbeddables === false ||
         embedLink?.type === "document"
       ) {
-        const anchorTag = svgRoot.ownerDocument!.createElementNS(SVG_NS, "a");
+        const anchorTag = svgRoot.ownerDocument.createElementNS(SVG_NS, "a");
         anchorTag.setAttribute("href", normalizeLink(element.link || ""));
         anchorTag.setAttribute("target", "_blank");
         anchorTag.setAttribute("rel", "noopener noreferrer");
@@ -250,18 +251,18 @@ const renderElementToSvg = (
 
         embeddableNode.appendChild(anchorTag);
       } else {
-        const foreignObject = svgRoot.ownerDocument!.createElementNS(
+        const foreignObject = svgRoot.ownerDocument.createElementNS(
           SVG_NS,
           "foreignObject",
         );
         foreignObject.style.width = `${element.width}px`;
         foreignObject.style.height = `${element.height}px`;
         foreignObject.style.border = "none";
-        const div = foreignObject.ownerDocument!.createElementNS(SVG_NS, "div");
+        const div = foreignObject.ownerDocument.createElementNS(SVG_NS, "div");
         div.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
         div.style.width = "100%";
         div.style.height = "100%";
-        const iframe = div.ownerDocument!.createElement("iframe");
+        const iframe = div.ownerDocument.createElement("iframe");
         iframe.src = embedLink?.link ?? "";
         iframe.style.width = "100%";
         iframe.style.height = "100%";
@@ -281,15 +282,23 @@ const renderElementToSvg = (
     case "line":
     case "arrow": {
       const boundText = getBoundTextElement(element, elementsMap);
-      const maskPath = svgRoot.ownerDocument!.createElementNS(SVG_NS, "mask");
+      const maskPath = svgRoot.ownerDocument.createElementNS(SVG_NS, "mask");
       if (boundText) {
         maskPath.setAttribute("id", `mask-${element.id}`);
-        const maskRectVisible = svgRoot.ownerDocument!.createElementNS(
+        const maskRectVisible = svgRoot.ownerDocument.createElementNS(
           SVG_NS,
           "rect",
         );
         offsetX = offsetX || 0;
         offsetY = offsetY || 0;
+        // Pin the mask to user space; the default maskUnits="objectBoundingBox"
+        // collapses to zero area for axis-aligned arrows (zero-size bbox),
+        // hiding the whole line from SVG exports (#11439).
+        maskPath.setAttribute("maskUnits", "userSpaceOnUse");
+        maskPath.setAttribute("x", "0");
+        maskPath.setAttribute("y", "0");
+        maskPath.setAttribute("width", `${element.width + 100 + offsetX}`);
+        maskPath.setAttribute("height", `${element.height + 100 + offsetY}`);
         maskRectVisible.setAttribute("x", "0");
         maskRectVisible.setAttribute("y", "0");
         maskRectVisible.setAttribute("fill", "#fff");
@@ -303,7 +312,7 @@ const renderElementToSvg = (
         );
 
         maskPath.appendChild(maskRectVisible);
-        const maskRectInvisible = svgRoot.ownerDocument!.createElementNS(
+        const maskRectInvisible = svgRoot.ownerDocument.createElementNS(
           SVG_NS,
           "rect",
         );
@@ -324,7 +333,7 @@ const renderElementToSvg = (
         maskRectInvisible.setAttribute("opacity", "1");
         maskPath.appendChild(maskRectInvisible);
       }
-      const group = svgRoot.ownerDocument!.createElementNS(SVG_NS, "g");
+      const group = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
       if (boundText) {
         group.setAttribute("mask", `url(#mask-${element.id})`);
       }
@@ -374,42 +383,64 @@ const renderElementToSvg = (
       break;
     }
     case "freedraw": {
-      const backgroundFillShape = ShapeCache.generateElementShape(
-        element,
-        renderConfig,
-      );
-      const node = backgroundFillShape
-        ? roughSVGDrawWithPrecision(
+      const wrapper = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+
+      const shapes = ShapeCache.generateElementShape(element, renderConfig);
+      // always ordered as [background, stroke]
+      for (const shape of shapes) {
+        if (typeof shape === "string") {
+          // stroke (SVGPathString)
+
+          const path = svgRoot.ownerDocument.createElementNS(SVG_NS, "path");
+          path.setAttribute(
+            "fill",
+            applyDarkModeFilter(
+              element.strokeColor,
+              renderConfig.theme === THEME.DARK,
+            ),
+          );
+          path.setAttribute("d", shape);
+          wrapper.appendChild(path);
+        } else {
+          // background (Drawable)
+
+          const bgNode = roughSVGDrawWithPrecision(
             rsvg,
-            backgroundFillShape,
+            shape,
             MAX_DECIMALS_FOR_SVG_EXPORT,
-          )
-        : svgRoot.ownerDocument!.createElementNS(SVG_NS, "g");
-      if (opacity !== 1) {
-        node.setAttribute("stroke-opacity", `${opacity}`);
-        node.setAttribute("fill-opacity", `${opacity}`);
+          );
+
+          // if children wrapped in <g>, unwrap it
+          if (bgNode.nodeName === "g") {
+            while (bgNode.firstChild) {
+              wrapper.appendChild(bgNode.firstChild);
+            }
+          } else {
+            wrapper.appendChild(bgNode);
+          }
+        }
       }
-      node.setAttribute(
+      if (opacity !== 1) {
+        wrapper.setAttribute("stroke-opacity", `${opacity}`);
+        wrapper.setAttribute("fill-opacity", `${opacity}`);
+      }
+      wrapper.setAttribute(
         "transform",
         `translate(${offsetX || 0} ${
           offsetY || 0
         }) rotate(${degree} ${cx} ${cy})`,
       );
-      node.setAttribute("stroke", "none");
-      const path = svgRoot.ownerDocument!.createElementNS(SVG_NS, "path");
-      path.setAttribute("fill", element.strokeColor);
-      path.setAttribute("d", getFreeDrawSvgPath(element));
-      node.appendChild(path);
+      wrapper.setAttribute("stroke", "none");
 
       const g = maybeWrapNodesInFrameClipPath(
         element,
         root,
-        [node],
+        [wrapper],
         renderConfig.frameRendering,
         elementsMap,
       );
 
-      addToRoot(g || node, element);
+      addToRoot(g || wrapper, element);
       break;
     }
     case "image": {
@@ -439,10 +470,10 @@ const renderElementToSvg = (
 
         let symbol = svgRoot.querySelector(`#${symbolId}`);
         if (!symbol) {
-          symbol = svgRoot.ownerDocument!.createElementNS(SVG_NS, "symbol");
+          symbol = svgRoot.ownerDocument.createElementNS(SVG_NS, "symbol");
           symbol.id = symbolId;
 
-          const image = svgRoot.ownerDocument!.createElementNS(SVG_NS, "image");
+          const image = svgRoot.ownerDocument.createElementNS(SVG_NS, "image");
           image.setAttribute("href", fileData.dataURL);
           image.setAttribute("preserveAspectRatio", "none");
 
@@ -459,16 +490,8 @@ const renderElementToSvg = (
           (root.querySelector("defs") || root).prepend(symbol);
         }
 
-        const use = svgRoot.ownerDocument!.createElementNS(SVG_NS, "use");
+        const use = svgRoot.ownerDocument.createElementNS(SVG_NS, "use");
         use.setAttribute("href", `#${symbolId}`);
-
-        // in dark theme, revert the image color filter
-        if (
-          renderConfig.exportWithDarkMode &&
-          fileData.mimeType !== MIME_TYPES.svg
-        ) {
-          use.setAttribute("filter", IMAGE_INVERT_FILTER);
-        }
 
         let normalizedCropX = 0;
         let normalizedCropY = 0;
@@ -506,13 +529,20 @@ const renderElementToSvg = (
           );
         }
 
-        const g = svgRoot.ownerDocument!.createElementNS(SVG_NS, "g");
+        const g = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+
+        if (
+          renderConfig.theme === THEME.DARK &&
+          fileData.mimeType === MIME_TYPES.svg
+        ) {
+          g.setAttribute("filter", DARK_THEME_FILTER);
+        }
 
         if (element.crop) {
-          const mask = svgRoot.ownerDocument!.createElementNS(SVG_NS, "mask");
+          const mask = svgRoot.ownerDocument.createElementNS(SVG_NS, "mask");
           mask.setAttribute("id", `mask-image-crop-${element.id}`);
           mask.setAttribute("fill", "#fff");
-          const maskRect = svgRoot.ownerDocument!.createElementNS(
+          const maskRect = svgRoot.ownerDocument.createElementNS(
             SVG_NS,
             "rect",
           );
@@ -536,13 +566,13 @@ const renderElementToSvg = (
         );
 
         if (element.roundness) {
-          const clipPath = svgRoot.ownerDocument!.createElementNS(
+          const clipPath = svgRoot.ownerDocument.createElementNS(
             SVG_NS,
             "clipPath",
           );
           clipPath.id = `image-clipPath-${element.id}`;
           clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
-          const clipRect = svgRoot.ownerDocument!.createElementNS(
+          const clipRect = svgRoot.ownerDocument.createElementNS(
             SVG_NS,
             "rect",
           );
@@ -598,7 +628,13 @@ const renderElementToSvg = (
         rect.setAttribute("ry", FRAME_STYLE.radius.toString());
 
         rect.setAttribute("fill", "none");
-        rect.setAttribute("stroke", FRAME_STYLE.strokeColor);
+        rect.setAttribute(
+          "stroke",
+          applyDarkModeFilter(
+            FRAME_STYLE.strokeColor,
+            renderConfig.theme === THEME.DARK,
+          ),
+        );
         rect.setAttribute("stroke-width", FRAME_STYLE.strokeWidth.toString());
 
         addToRoot(rect, element);
@@ -607,7 +643,7 @@ const renderElementToSvg = (
     }
     default: {
       if (isTextElement(element)) {
-        const node = svgRoot.ownerDocument!.createElementNS(SVG_NS, "g");
+        const node = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
         if (opacity !== 1) {
           node.setAttribute("stroke-opacity", `${opacity}`);
           node.setAttribute("fill-opacity", `${opacity}`);
@@ -643,13 +679,19 @@ const renderElementToSvg = (
             ? "end"
             : "start";
         for (let i = 0; i < lines.length; i++) {
-          const text = svgRoot.ownerDocument!.createElementNS(SVG_NS, "text");
+          const text = svgRoot.ownerDocument.createElementNS(SVG_NS, "text");
           text.textContent = lines[i];
           text.setAttribute("x", `${horizontalOffset}`);
           text.setAttribute("y", `${i * lineHeightPx + verticalOffset}`);
           text.setAttribute("font-family", getFontFamilyString(element));
           text.setAttribute("font-size", `${element.fontSize}px`);
-          text.setAttribute("fill", element.strokeColor);
+          text.setAttribute(
+            "fill",
+            applyDarkModeFilter(
+              element.strokeColor,
+              renderConfig.theme === THEME.DARK,
+            ),
+          );
           text.setAttribute("text-anchor", textAnchor);
           text.setAttribute("style", "white-space: pre;");
           text.setAttribute("direction", direction);

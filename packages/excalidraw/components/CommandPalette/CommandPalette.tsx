@@ -10,16 +10,16 @@ import {
   isWritableElement,
 } from "@excalidraw/common";
 
-import { actionToggleShapeSwitch } from "@excalidraw/excalidraw/actions/actionToggleShapeSwitch";
-
-import { getShortcutKey } from "@excalidraw/excalidraw/shortcut";
-
 import type { MarkRequired } from "@excalidraw/common/utility-types";
+
+import { actionToggleShapeSwitch } from "../../actions/actionToggleShapeSwitch";
+import { getShortcutKey } from "../../shortcut";
 
 import {
   actionClearCanvas,
   actionLink,
   actionToggleSearchMenu,
+  actionToggleTheme,
 } from "../../actions";
 import {
   actionCopyElementLink,
@@ -44,7 +44,6 @@ import { getSelectedElements } from "../../scene";
 import {
   LockedIcon,
   UnlockedIcon,
-  clockIcon,
   searchIcon,
   boltIcon,
   bucketFillIcon,
@@ -52,6 +51,7 @@ import {
   mermaidLogoIcon,
   brainIconThin,
   LibraryIcon,
+  historyCommandIcon,
 } from "../icons";
 
 import { SHAPES } from "../shapes";
@@ -425,6 +425,7 @@ function CommandPaletteInner({
       ];
 
       const additionalCommands: CommandPaletteItem[] = [
+        actionToCommand(actionToggleTheme, DEFAULT_CATEGORIES.app),
         {
           label: t("toolBar.library"),
           category: DEFAULT_CATEGORIES.app,
@@ -928,7 +929,7 @@ function CommandPaletteInner({
                   marginLeft: "6px",
                 }}
               >
-                {clockIcon}
+                {historyCommandIcon}
               </div>
             </div>
             <CommandItem

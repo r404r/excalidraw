@@ -7,7 +7,6 @@
 // to determine whether or not the icons should be mirrored in right-to-left languages.
 
 import clsx from "clsx";
-import oc from "open-color";
 import React from "react";
 
 import { THEME } from "@excalidraw/common";
@@ -17,7 +16,7 @@ import type { Theme } from "@excalidraw/element/types";
 export const iconFillColor = (theme: Theme) => "var(--icon-fill-color)";
 
 const handlerColor = (theme: Theme) =>
-  theme === THEME.LIGHT ? oc.white : "#1e1e1e";
+  theme === THEME.LIGHT ? "#fff" : "#1e1e1e";
 
 type Opts = {
   width?: number;
@@ -68,6 +67,11 @@ const modifiedTablerIconProps: Opts = {
   stroke: "currentColor",
   strokeLinecap: "round",
   strokeLinejoin: "round",
+} as const;
+
+const arrowheadPreviewIconProps: Opts = {
+  width: 40,
+  height: 20,
 } as const;
 
 // -----------------------------------------------------------------------------
@@ -1288,13 +1292,22 @@ export const EdgeRoundIcon = createIcon(
   tablerIconProps,
 );
 
-export const ArrowheadNoneIcon = createIcon(
-  <g stroke="currentColor" opacity={0.3} strokeWidth={2}>
-    <path d="M12 12l9 0" />
-    <path d="M3 9l6 6" />
-    <path d="M3 15l6 -6" />
-  </g>,
-  tablerIconProps,
+export const ArrowheadNoneIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
+        stroke="currentColor"
+        opacity={0.3}
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+      >
+        <path d="M7,11 H19" />
+        <path d="M25,6 L33,16 M33,6 L25,16" />
+      </g>,
+      arrowheadPreviewIconProps,
+    ),
 );
 
 export const ArrowheadArrowIcon = React.memo(
@@ -1305,57 +1318,12 @@ export const ArrowheadArrowIcon = React.memo(
         stroke="currentColor"
         strokeWidth={2}
         fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
-        <path d="M34 10H6M34 10L27 5M34 10L27 15" />
-        <path d="M27.5 5L34.5 10L27.5 15" />
+        <path d="M7,11 H33 M23,5 L33,11 L23,17" />
       </g>,
-      { width: 40, height: 20 },
-    ),
-);
-
-export const ArrowheadCircleIcon = React.memo(
-  ({ flip = false }: { flip?: boolean }) =>
-    createIcon(
-      <g
-        stroke="currentColor"
-        fill="currentColor"
-        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
-      >
-        <path d="M32 10L6 10" strokeWidth={2} />
-        <circle r="4" transform="matrix(-1 0 0 1 30 10)" />
-      </g>,
-      { width: 40, height: 20 },
-    ),
-);
-
-export const ArrowheadCircleOutlineIcon = React.memo(
-  ({ flip = false }: { flip?: boolean }) =>
-    createIcon(
-      <g
-        stroke="currentColor"
-        fill="none"
-        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
-        strokeWidth={2}
-      >
-        <path d="M26 10L6 10" />
-        <circle r="4" transform="matrix(-1 0 0 1 30 10)" />
-      </g>,
-      { width: 40, height: 20 },
-    ),
-);
-
-export const ArrowheadBarIcon = React.memo(
-  ({ flip = false }: { flip?: boolean }) =>
-    createIcon(
-      <g transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}>
-        <path
-          d="M34 10H5.99996M34 10L34 5M34 10L34 15"
-          stroke="currentColor"
-          strokeWidth={2}
-          fill="none"
-        />
-      </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
@@ -1366,11 +1334,12 @@ export const ArrowheadTriangleIcon = React.memo(
         stroke="currentColor"
         fill="currentColor"
         transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
+        strokeLinejoin="round"
       >
-        <path d="M32 10L6 10" strokeWidth={2} />
-        <path d="M27.5 5.5L34.5 10L27.5 14.5L27.5 5.5" />
+        <path d="M7,11 H23" strokeWidth={2} strokeLinecap="round" />
+        <path d="M23,5 L35,11 L23,17 Z" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
@@ -1383,12 +1352,43 @@ export const ArrowheadTriangleOutlineIcon = React.memo(
         transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
         strokeWidth={2}
         strokeLinejoin="round"
+        strokeLinecap="round"
       >
-        <path d="M6,9.5H27" />
-        <path d="M27,5L34,10L27,14Z" fill="none" />
+        <path d="M7,11 H23" />
+        <path d="M23,5 L35,11 L23,17 Z" />
       </g>,
+      arrowheadPreviewIconProps,
+    ),
+);
 
-      { width: 40, height: 20 },
+export const ArrowheadCircleIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        stroke="currentColor"
+        fill="currentColor"
+        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
+      >
+        <path d="M7,11 H25" strokeWidth={2} strokeLinecap="round" />
+        <circle cx="29" cy="11" r="4" />
+      </g>,
+      arrowheadPreviewIconProps,
+    ),
+);
+
+export const ArrowheadCircleOutlineIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        stroke="currentColor"
+        fill="none"
+        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
+        strokeWidth={2}
+      >
+        <path d="M7,11 H25" strokeLinecap="round" />
+        <circle cx="29" cy="11" r="4" />
+      </g>,
+      arrowheadPreviewIconProps,
     ),
 );
 
@@ -1400,12 +1400,11 @@ export const ArrowheadDiamondIcon = React.memo(
         fill="currentColor"
         transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
         strokeLinejoin="round"
-        strokeWidth={2}
       >
-        <path d="M6,9.5H20" />
-        <path d="M27,5L34,10L27,14L20,9.5Z" />
+        <path d="M7,11 H21" strokeWidth={2} strokeLinecap="round" />
+        <path d="M21,11 L28,5 L35,11 L28,17 Z" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
@@ -1418,15 +1417,32 @@ export const ArrowheadDiamondOutlineIcon = React.memo(
         transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
         strokeLinejoin="round"
         strokeWidth={2}
+        strokeLinecap="round"
       >
-        <path d="M6,9.5H20" />
-        <path d="M27,5L34,10L27,14L20,9.5Z" />
+        <path d="M7,11 H21" />
+        <path d="M21,11 L28,5 L35,11 L28,17 Z" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
-export const ArrowheadCrowfootIcon = React.memo(
+export const ArrowheadBarIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        transform={flip ? "translate(40, 0) scale(-1, 1)" : ""}
+        stroke="currentColor"
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+      >
+        <path d="M11,11 H31 M31,5 V17" />
+      </g>,
+      arrowheadPreviewIconProps,
+    ),
+);
+
+export const ArrowheadCardinalityOneIcon = React.memo(
   ({ flip = false }: { flip?: boolean }) =>
     createIcon(
       <g
@@ -1436,13 +1452,13 @@ export const ArrowheadCrowfootIcon = React.memo(
         strokeLinejoin="round"
         strokeWidth={2}
       >
-        <path d="M34,10 H6 M15,10 L7,5 M15,10 L7,15" />
+        <path d="M35,11 H7 M15,5 V17" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
-export const ArrowheadCrowfootOneIcon = React.memo(
+export const ArrowheadCardinalityManyIcon = React.memo(
   ({ flip = false }: { flip?: boolean }) =>
     createIcon(
       <g
@@ -1452,13 +1468,13 @@ export const ArrowheadCrowfootOneIcon = React.memo(
         strokeLinejoin="round"
         strokeWidth={2}
       >
-        <path d="M34,10 H6 M15,10 L15,15 L15,5" />
+        <path d="M35,11 H7 M15,11 L7,5 M15,11 L7,17" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
     ),
 );
 
-export const ArrowheadCrowfootOneOrManyIcon = React.memo(
+export const ArrowheadCardinalityOneOrManyIcon = React.memo(
   ({ flip = false }: { flip?: boolean }) =>
     createIcon(
       <g
@@ -1468,9 +1484,59 @@ export const ArrowheadCrowfootOneOrManyIcon = React.memo(
         strokeLinejoin="round"
         strokeWidth={2}
       >
-        <path d="M34,10 H6 M15,10 L15,16 L15,4 M15,10 L7,5 M15,10 L7,15" />
+        <path d="M35,11 H7 M23,5 V17 M15,11 L7,5 M15,11 L7,17" />
       </g>,
-      { width: 40, height: 20 },
+      arrowheadPreviewIconProps,
+    ),
+);
+
+export const ArrowheadCardinalityExactlyOneIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        stroke="currentColor"
+        fill="none"
+        transform={flip ? "" : "translate(40, 0) scale(-1, 1)"}
+        strokeLinejoin="round"
+        strokeWidth={2}
+      >
+        <path d="M35,11 H7 M15,5 V17 M7,5 V17" />
+      </g>,
+      arrowheadPreviewIconProps,
+    ),
+);
+
+export const ArrowheadCardinalityZeroOrOneIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        stroke="currentColor"
+        fill="none"
+        transform={flip ? "" : "translate(40, 0) scale(-1, 1)"}
+        strokeLinejoin="round"
+        strokeWidth={2}
+      >
+        <path d="M35,11 H19 M11,11 H7 M7,5 V17" />
+        <circle cx="15" cy="11" r="4" />
+      </g>,
+      arrowheadPreviewIconProps,
+    ),
+);
+
+export const ArrowheadCardinalityZeroOrManyIcon = React.memo(
+  ({ flip = false }: { flip?: boolean }) =>
+    createIcon(
+      <g
+        stroke="currentColor"
+        fill="none"
+        transform={flip ? "" : "translate(40, 0) scale(-1, 1)"}
+        strokeLinejoin="round"
+        strokeWidth={2}
+      >
+        <path d="M35,11 H27 M19,11 H7 M15,11 L7,5 M15,11 L7,17" />
+        <circle cx="23" cy="11" r="4" />
+      </g>,
+      arrowheadPreviewIconProps,
     ),
 );
 
@@ -1595,25 +1661,17 @@ export const FontFamilyNormalIcon = createIcon(
   modifiedTablerIconProps,
 );
 
-export const FontFamilyCodeIcon = createIcon(
-  <>
-    <g
-      clipPath="url(#a)"
-      stroke="currentColor"
-      strokeWidth="1.25"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5.833 6.667 2.5 10l3.333 3.333M14.167 6.667 17.5 10l-3.333 3.333M11.667 3.333 8.333 16.667" />
-    </g>
-    <defs>
-      <clipPath id="a">
-        <path fill="#fff" d="M0 0h20v20H0z" />
-      </clipPath>
-    </defs>
-  </>,
-  modifiedTablerIconProps,
+export const codeIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M7 8l-4 4l4 4" />
+    <path d="M17 8l4 4l-4 4" />
+    <path d="M14 4l-4 16" />
+  </g>,
+  tablerIconProps,
 );
+
+export const FontFamilyCodeIcon = codeIcon;
 
 export const TextAlignLeftIcon = createIcon(
   <g
@@ -1866,6 +1924,27 @@ export const mermaidLogoIcon = createIcon(
   />,
 );
 
+// tabler-icons: refresh
+export const RetryIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+  </g>,
+  tablerIconProps,
+);
+
+export const stackPushIcon = createIcon(
+  <g>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M6 10l-2 1l8 4l8 -4l-2 -1" />
+    <path d="M4 15l8 4l8 -4" />
+    <path d="M12 4v7" />
+    <path d="M15 8l-3 3l-3 -3" />
+  </g>,
+  tablerIconProps,
+);
+
 export const ArrowRightIcon = createIcon(
   <g strokeWidth="1.25">
     <path d="M4.16602 10H15.8327" />
@@ -1994,12 +2073,23 @@ export const searchIcon = createIcon(
   tablerIconProps,
 );
 
-export const clockIcon = createIcon(
+// clock-bolt
+export const historyCommandIcon = createIcon(
   <g strokeWidth={1.5}>
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
     <path d="M20.984 12.53a9 9 0 1 0 -7.552 8.355" />
     <path d="M12 7v5l3 3" />
     <path d="M19 16l-2 3h4l-2 3" />
+  </g>,
+  tablerIconProps,
+);
+
+// history
+export const historyIcon = createIcon(
+  <g strokeWidth={1.5}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 8l0 4l2 2" />
+    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" />
   </g>,
   tablerIconProps,
 );
@@ -2370,6 +2460,35 @@ export const presentationIcon = createIcon(
     <path d="M12 16l0 4" />
     <path d="M9 20l6 0" />
     <path d="M8 12l3 -3l2 2l3 -3" />
+  </g>,
+  tablerIconProps,
+);
+
+// empty placeholder icon (used for alignment in menus)
+export const emptyIcon = <div style={{ width: "1rem", height: "1rem" }} />;
+
+//tabler-icons: chevron-right
+export const chevronRight = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <polyline points="9 6 15 12 9 18" />
+  </g>,
+  tablerIconProps,
+);
+
+// tabler-icons: adjustments-horizontal
+export const settingsIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M4 6l8 0" />
+    <path d="M16 6l4 0" />
+    <path d="M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M4 12l2 0" />
+    <path d="M10 12l10 0" />
+    <path d="M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M4 18l11 0" />
+    <path d="M19 18l1 0" />
   </g>,
   tablerIconProps,
 );
