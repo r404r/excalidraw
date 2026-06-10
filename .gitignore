@@ -10,6 +10,7 @@
 .vercel
 .vscode
 .yarn
+.tmp/
 *.log
 *.tgz
 build
