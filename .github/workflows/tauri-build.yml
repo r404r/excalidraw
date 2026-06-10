@@ -50,11 +50,39 @@ jobs:
       - name: Install dependencies  # working-directory: excalidraw-app
         run: yarn install
 
+      # Build the front-end exactly once, with the real commit SHA. This is the
+      # only front-end build; the Tauri step below no longer rebuilds it
+      # (tauri.conf.json beforeBuildCommand is empty), so this output is what
+      # gets packaged.
       - name: Build front-end  # working-directory: excalidraw-app
         run: yarn workspace excalidraw-app build
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }} # set env paramater
 
+      # Guard: fail the release before packaging if the built bundle is missing
+      # the Preferences menu code or still carries the local-dev SHA. Runs on
+      # all platforms via git-bash (shell: bash).
+      - name: Verify front-end bundle before packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSETS="excalidraw-app/build/assets"
+          if [ ! -d "$ASSETS" ]; then
+            echo "::error::Build output '$ASSETS' not found"; exit 1
+          fi
+          if ! grep -rq "excalidraw-main-menu-preferences-submenu" "$ASSETS"; then
+            echo "::error::Built bundle is missing the Preferences submenu (excalidraw-main-menu-preferences-submenu)"; exit 1
+          fi
+          if ! grep -rq "preferences_toolLock" "$ASSETS"; then
+            echo "::error::Built bundle is missing preferences_toolLock"; exit 1
+          fi
+          if grep -rq "local-dev" "$ASSETS"; then
+            echo "::error::Built bundle still embeds the placeholder SHA 'local-dev'"; exit 1
+          fi
+          echo "Bundle verification passed: Preferences menu present and SHA is not local-dev."
+
+      # Package only — beforeBuildCommand is empty, so tauri-action packages the
+      # verified ../build above instead of rebuilding (and overwriting) it.
       - name: Build and Publish Tauri app
         uses: tauri-apps/tauri-action@v0
         with:
