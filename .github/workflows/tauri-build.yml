@@ -50,14 +50,15 @@ jobs:
       - name: Install dependencies  # working-directory: excalidraw-app
         run: yarn install
 
-      # Build the front-end exactly once, with the real commit SHA. This is the
-      # only front-end build; the Tauri step below no longer rebuilds it
-      # (tauri.conf.json beforeBuildCommand is empty), so this output is what
-      # gets packaged.
+      # Build the front-end for verification with the exact same env the
+      # packaging step uses (real commit SHA, Tauri mode). The Tauri step
+      # below rebuilds via beforeBuildCommand from the same source and env,
+      # so the bundle verified here matches what ships.
       - name: Build front-end  # working-directory: excalidraw-app
         run: yarn workspace excalidraw-app build
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }} # set env paramater
+          VITE_APP_TAURI: "true" # disable PWA/service-worker caching in the desktop app
 
       # Guard: fail the release before packaging if the built bundle is missing
       # the Preferences menu code or still carries the local-dev SHA. Runs on
@@ -81,8 +82,8 @@ jobs:
           fi
           echo "Bundle verification passed: Preferences menu present and SHA is not local-dev."
 
-      # Package only — beforeBuildCommand is empty, so tauri-action packages the
-      # verified ../build above instead of rebuilding (and overwriting) it.
+      # tauri.conf.json beforeBuildCommand rebuilds the front-end with
+      # VITE_APP_TAURI=true (PWA disabled) and the env below, then packages it.
       - name: Build and Publish Tauri app
         uses: tauri-apps/tauri-action@v0
         with:
@@ -95,3 +96,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }} # set env paramater
+          VITE_APP_TAURI: "true" # disable PWA/service-worker caching in the desktop app

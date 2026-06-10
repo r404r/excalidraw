@@ -149,6 +149,12 @@ export default defineConfig(({ mode }) => {
       svgrPlugin(),
       ViteEjsPlugin(),
       VitePWA({
+        // The Tauri desktop app must not use the web PWA cache: its fixed
+        // origin (http://tauri.localhost) would keep serving stale bundles
+        // across app updates. `selfDestroying` ships a service worker that
+        // unregisters any previously installed one and clears its caches,
+        // so users upgrading from older releases recover automatically.
+        selfDestroying: envVars.VITE_APP_TAURI === "true",
         registerType: "autoUpdate",
         devOptions: {
           /* set this flag to true to enable in Development mode */
